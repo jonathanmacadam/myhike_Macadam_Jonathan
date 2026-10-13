@@ -1,17 +1,20 @@
+import { logoutUser, onAuthReady } from "/src/authentication.js";
+
 class SiteNavbar extends HTMLElement {
     constructor() {
         super();
         this.renderNavbar();
+        this.renderAuthControls();   // adds Log in or Log out button
     }
 
     renderNavbar() {
         this.innerHTML = `
             <!-- Navbar: single source of truth -->
-            <nav class="navbar navbar-expand-lg navbar-light bg-info">
+            <nav class="navbar navbar-expand-lg navbar-dark bg-success">
                 <div class="container-fluid">
                     <a class="navbar-brand" href="/">
                         <img src="/images/image.jpg" height="36">
-                        ElmoHikes
+                        Jon's Hikes
                     </a>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
                         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,11 +35,32 @@ class SiteNavbar extends HTMLElement {
                                 <!-- populated by JS -->
                             </div>
                         </div>
-
                     </div>
                 </div>
             </nav>
         `;
+    }
+
+    /**
+     * Displays Log in or Log out button in the navbar based on Firebase authentication status.
+     * Updates automatically when the user's login status changes.
+     */
+    renderAuthControls() {
+        const authControls = this.querySelector('#authControls'); // Find #authControls inside this navbar
+
+        // Invisible placeholder prevents layout shifting while Firebase checks login status
+        authControls.innerHTML = `<div class="btn btn-outline-light" style="visibility: hidden; min-width: 80px;">Log out</div>`;
+
+        // Pass a callback that runs when Firebase reports the login status
+        onAuthReady(function (user) { // Receives the user object (or null)
+            if (user) { // User is logged in
+                authControls.innerHTML = `<button class="btn btn-outline-light" id="signOutBtn" type="button" style="min-width: 80px;">Log out</button>`;
+                const signOutBtn = authControls.querySelector('#signOutBtn');
+                signOutBtn.addEventListener('click', logoutUser); // runs when Log out is clicked
+            } else { // User is NOT logged in
+                authControls.innerHTML = `<a class="btn btn-outline-light" id="loginBtn" href="/login.html" style="min-width: 80px;">Log in</a>`;
+            }
+        });
     }
 }
 
